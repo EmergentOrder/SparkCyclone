@@ -222,3 +222,11 @@ frovedis::words filter_words(frovedis::words &in_words, std::vector<size_t> to_s
     auto new_indices = dct.lookup(cw);
     return dct.index_to_words(new_indices);
 }
+
+std::vector<size_t> filter_words_dict(frovedis::words &input_words, frovedis::words &filtering_set) {
+    auto compressed_words = make_compressed_words(input_words);
+    auto dct = make_dict_from_words(filtering_set);
+    auto new_indices = dct.lookup(compressed_words);
+
+    return new_indices;
+}
