@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
+#include <math.h>
 namespace frovedis {
 
 template <class T>
