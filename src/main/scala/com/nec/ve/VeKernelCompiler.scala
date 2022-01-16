@@ -206,7 +206,7 @@ final case class VeKernelCompiler(
           "-o",
           soFile.toString,
           oFile.toString,
-          s"${sourcesDir}/sources/cyclone-ve.so"
+          s"${sourcesDir}/cyclone-ve.so"
         ) ++ linkSos.toList.map(_.name).map(sourcesDir.resolve(_)).map(_.toString)
       }
       ProcessRunner.runHopeOk(
