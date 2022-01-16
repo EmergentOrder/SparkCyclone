@@ -63,7 +63,7 @@ object CppResource {
         .map(_.drop("cycloneve".length).drop(1))
         .map(r => CppResource(r))
         .toSet
-    })
+    } ++ All.all)
   }
 
 }
