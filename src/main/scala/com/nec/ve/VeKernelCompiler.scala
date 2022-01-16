@@ -53,10 +53,6 @@ object VeKernelCompiler {
   ).asJava
   val FileAttributes = PosixFilePermissions.asFileAttribute(PosixPermissions)
 
-  lazy val DefaultIncludes = {
-    Set("cpp", "cpp/frovedis", "cpp/frovedis/dataframe", "")
-  }
-
   import VeCompilerConfig.ExtraArgumentPrefix
   final case class ProfileTarget(host: String, port: Int)
 
@@ -209,7 +205,8 @@ final case class VeKernelCompiler(
         Seq(nccPath, "-shared", "-pthread" /*, "-ftrace", "-lveftrace_p"*/ ) ++ Seq(
           "-o",
           soFile.toString,
-          oFile.toString
+          oFile.toString,
+          "sources/cyclone-ve.so"
         ) ++ linkSos.toList.map(_.name).map(sourcesDir.resolve(_)).map(_.toString)
       }
       ProcessRunner.runHopeOk(
