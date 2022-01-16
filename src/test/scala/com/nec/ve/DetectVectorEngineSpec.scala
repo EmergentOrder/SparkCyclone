@@ -30,6 +30,8 @@ import org.scalatest.freespec.AnyFreeSpec
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths}
 
+@org.scalatest.Ignore
+
 object DetectVectorEngineSpec {
   private val ExpectedClassPathItems =
     List(
