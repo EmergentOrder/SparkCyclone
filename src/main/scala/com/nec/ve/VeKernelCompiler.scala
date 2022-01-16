@@ -167,6 +167,8 @@ final case class VeKernelCompiler(
     }
     val linkSos =
       CppResources.AllVe.all.filter(_.name.endsWith(".so"))
+
+    assert(linkSos.nonEmpty, s"Expected to have at least 1 .so file, found nond. List: ${linkSos}")
     Files.write(cSource, sourceCode.getBytes())
     try {
       val oFile = buildDir.resolve(s"${compilationPrefix}.o")
@@ -200,7 +202,6 @@ final case class VeKernelCompiler(
           "-o",
           soFile.toString,
           oFile.toString,
-          s"${sourcesDir}/${PlatformLibrarySoName}"
         ) ++ linkSos.toList.map(_.name).map(sourcesDir.resolve(_)).map(_.toString)
       }
       ProcessRunner.runHopeOk(
