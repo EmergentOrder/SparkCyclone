@@ -54,7 +54,7 @@ object CppResource {
     })
     lazy val AllVe: CppResources = CppResources({
       import org.reflections.Reflections
-      val reflections = new Reflections(CppPrefix, new ResourcesScanner)
+      val reflections = new Reflections("cycloneve", new ResourcesScanner)
       import scala.collection.JavaConverters._
       reflections
         .getResources(Pattern.compile(".*"))
