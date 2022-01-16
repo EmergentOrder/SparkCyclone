@@ -8,7 +8,6 @@ import com.nec.ve.VERDDSpec.{exchangeBatches, MultiFunctionName}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
 
-@org.scalatest.Ignore
 final class ExchangeOnClusterSpec
   extends AnyFreeSpec
   with SparkAdditions

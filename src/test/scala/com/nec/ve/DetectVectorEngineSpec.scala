@@ -69,7 +69,6 @@ object DetectVectorEngineSpec {
   final case class SampleClass(a: Int, b: Double)
 }
 
-@org.scalatest.Ignore
 final class DetectVectorEngineSpec extends AnyFreeSpec with BeforeAndAfter with SparkAdditions {
   "It works" in {
     import scala.collection.JavaConverters._
