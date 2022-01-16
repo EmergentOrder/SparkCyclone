@@ -166,6 +166,15 @@ def veFilter(name: String): Boolean = name.startsWith("com.nec.ve")
 VectorEngine / fork := true
 VectorEngine / run / fork := false
 
+/**
+ * Make each test suite run independently
+ * https://stackoverflow.com/questions/61072140/forking-each-scalatest-suite-with-sbt
+ */
+VectorEngine / testGrouping := (VectorEngine / definedTests).value.map { suite =>
+  import sbt.Tests._
+  Group(suite.name, Seq(suite), SubProcess(ForkOptions()))
+}
+
 /** This generates a file 'java.hprof.txt' in the project root for very simple profiling. * */
 VectorEngine / run / javaOptions ++= {
   // The feature was removed in JDK9, however for Spark we must support JDK8
