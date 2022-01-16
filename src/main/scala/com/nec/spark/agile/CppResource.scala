@@ -23,6 +23,7 @@ import com.nec.spark.agile.CppResource.CppPrefixPath
 import java.nio.file.Files
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
+import org.apache.hadoop.yarn.exceptions.ResourceNotFoundException
 import org.reflections.scanners.ResourcesScanner
 
 import java.net.URL
@@ -75,7 +76,13 @@ object CppResource {
 
 final case class CppResource(name: String, fullPath: String) {
   def readString: String = IOUtils.toString(resourceUrl.openStream(), "UTF-8")
-  def resourceUrl: URL = this.getClass.getResource(fullPath)
+  def resourceUrl: URL = {
+    try this.getClass.getResource(fullPath)
+    catch {
+      case npe: NullPointerException =>
+        throw new ResourceNotFoundException(s"Not found: ${name} // '${fullPath}'")
+    }
+  }
   def resourceFile(inRoot: Path): Path = inRoot.resolve(name)
   def containingDir(inRoot: Path): Path = resourceFile(inRoot).getParent
   def copyTo(destRoot: Path): Unit = {
