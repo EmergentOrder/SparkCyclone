@@ -61,6 +61,7 @@ object CppResource {
         .asScala
         .toList
         .map(_.drop("cycloneve".length).drop(1))
+        .filter(_.contains(".so"))
         .map(r => CppResource(r))
         .toSet
     } ++ All.all)
