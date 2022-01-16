@@ -60,7 +60,7 @@ object CppResource {
         .getResources(Pattern.compile(".*"))
         .asScala
         .toList
-        .map(_.drop(CppPrefix.length).drop(1))
+        .map(_.drop("cycloneve".length).drop(1))
         .map(r => CppResource(r))
         .toSet
     })
