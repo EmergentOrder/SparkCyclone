@@ -21,21 +21,13 @@ package com.nec.ve
 
 import com.nec.cmake.TcpDebug
 import com.nec.spark.agile.CppResource.CppResources
-import com.nec.ve.VeKernelCompiler.{FileAttributes, VeCompilerConfig}
+import com.nec.ve.VeKernelCompiler.{FileAttributes, PlatformLibrarySoName, VeCompilerConfig}
 import com.typesafe.scalalogging.LazyLogging
 
 import java.nio.file._
 import org.apache.spark.SparkConf
 
-import java.nio.file.attribute.PosixFilePermission.{
-  GROUP_EXECUTE,
-  GROUP_READ,
-  OTHERS_EXECUTE,
-  OTHERS_READ,
-  OWNER_EXECUTE,
-  OWNER_READ,
-  OWNER_WRITE
-}
+import java.nio.file.attribute.PosixFilePermission.{GROUP_EXECUTE, GROUP_READ, OTHERS_EXECUTE, OTHERS_READ, OWNER_EXECUTE, OWNER_READ, OWNER_WRITE}
 import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
 import java.util
 
@@ -147,6 +139,8 @@ object VeKernelCompiler {
       .compile_c(code)
   }
 
+  val PlatformLibrarySoName = "cyclone-ve.so"
+
 }
 
 final case class VeKernelCompiler(
@@ -206,7 +200,7 @@ final case class VeKernelCompiler(
           "-o",
           soFile.toString,
           oFile.toString,
-          s"${sourcesDir}/sources/cyclone-ve.so"
+          s"${sourcesDir}/${PlatformLibrarySoName}"
         ) ++ linkSos.toList.map(_.name).map(sourcesDir.resolve(_)).map(_.toString)
       }
       ProcessRunner.runHopeOk(
