@@ -30,7 +30,6 @@ import org.scalatest.freespec.AnyFreeSpec
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths}
 
-@org.scalatest.Ignore
 
 object DetectVectorEngineSpec {
   private val ExpectedClassPathItems =
@@ -70,6 +69,7 @@ object DetectVectorEngineSpec {
   final case class SampleClass(a: Int, b: Double)
 }
 
+@org.scalatest.Ignore
 final class DetectVectorEngineSpec extends AnyFreeSpec with BeforeAndAfter with SparkAdditions {
   "It works" in {
     import scala.collection.JavaConverters._
