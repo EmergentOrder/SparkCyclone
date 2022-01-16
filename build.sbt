@@ -157,8 +157,15 @@ Test / parallelExecution := false
 inConfig(Test)(Defaults.testTasks)
 
 /** To do things more cleanly */
-CMake / parallelExecution := false
-
+CMake / parallelExecution := true
+/**
+ * Make each test suite run independently
+ * https://stackoverflow.com/questions/61072140/forking-each-scalatest-suite-with-sbt
+ */
+CMake / testGrouping := (CMake / definedTests).value.map { suite =>
+  import sbt.Tests._
+  Group(suite.name, Seq(suite), SubProcess(ForkOptions()))
+}
 /** Vector Engine specific configuration */
 VectorEngine / parallelExecution := false
 inConfig(VectorEngine)(Defaults.testTasks)
