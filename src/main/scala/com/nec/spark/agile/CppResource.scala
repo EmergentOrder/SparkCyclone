@@ -48,30 +48,34 @@ object CppResource {
         .getResources(Pattern.compile(".*"))
         .asScala
         .toList
-        .map(_.drop(CppPrefix.length).drop(1))
-        .map(r => CppResource(r))
+        .map(nom => {
+          val nam = nom.drop(CppPrefix.length).drop(1)
+          CppResource(nam, s"/$nom")
+        })
         .toSet
     })
-    lazy val AllVe: CppResources = CppResources({
+    lazy val cycloneVeResources = {
       import org.reflections.Reflections
       val reflections = new Reflections("cycloneve", new ResourcesScanner)
       import scala.collection.JavaConverters._
       reflections
-        .getResources(Pattern.compile(".*"))
+        .getResources(Pattern.compile(".*\\.so"))
         .asScala
         .toList
-        .map(_.drop("cycloneve".length).drop(1))
-        .filter(_.contains(".so"))
-        .map(r => CppResource(r))
+        .collect {
+          case name if name.contains(".so") =>
+            CppResource(name = name.drop("cycloneve".length + 1), fullPath = s"/$name")
+        }
         .toSet
-    } ++ All.all)
+    }
+    lazy val AllVe: CppResources = CppResources(cycloneVeResources ++ All.all)
   }
 
 }
 
-final case class CppResource(name: String) {
+final case class CppResource(name: String, fullPath: String) {
   def readString: String = IOUtils.toString(resourceUrl.openStream(), "UTF-8")
-  def resourceUrl: URL = this.getClass.getResource(s"/${CppPrefixPath}/${name}")
+  def resourceUrl: URL = this.getClass.getResource(fullPath)
   def resourceFile(inRoot: Path): Path = inRoot.resolve(name)
   def containingDir(inRoot: Path): Path = resourceFile(inRoot).getParent
   def copyTo(destRoot: Path): Unit = {
