@@ -27,7 +27,15 @@ import com.typesafe.scalalogging.LazyLogging
 import java.nio.file._
 import org.apache.spark.SparkConf
 
-import java.nio.file.attribute.PosixFilePermission.{GROUP_EXECUTE, GROUP_READ, OTHERS_EXECUTE, OTHERS_READ, OWNER_EXECUTE, OWNER_READ, OWNER_WRITE}
+import java.nio.file.attribute.PosixFilePermission.{
+  GROUP_EXECUTE,
+  GROUP_READ,
+  OTHERS_EXECUTE,
+  OTHERS_READ,
+  OWNER_EXECUTE,
+  OWNER_READ,
+  OWNER_WRITE
+}
 import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
 import java.util
 
@@ -168,7 +176,10 @@ final case class VeKernelCompiler(
     val linkSos =
       CppResources.AllVe.all.filter(_.name.endsWith(".so"))
 
-    assert(linkSos.nonEmpty, s"Expected to have at least 1 .so file, found nond. List: ${linkSos}")
+    assert(
+      linkSos.nonEmpty,
+      s"Expected to have at least 1 .so file, found nond. Source: ${CppResources.AllVe}"
+    )
     Files.write(cSource, sourceCode.getBytes())
     try {
       val oFile = buildDir.resolve(s"${compilationPrefix}.o")
@@ -201,7 +212,7 @@ final case class VeKernelCompiler(
         Seq(nccPath, "-shared", "-pthread" /*, "-ftrace", "-lveftrace_p"*/ ) ++ Seq(
           "-o",
           soFile.toString,
-          oFile.toString,
+          oFile.toString
         ) ++ linkSos.toList.map(_.name).map(sourcesDir.resolve(_)).map(_.toString)
       }
       ProcessRunner.runHopeOk(
