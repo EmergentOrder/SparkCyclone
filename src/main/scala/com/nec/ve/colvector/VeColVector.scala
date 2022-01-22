@@ -34,7 +34,10 @@ import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
 
 final case class VeColVector(underlying: GenericColVector[Long]) {
-  def toSharedMemory()(implicit veProcess: VeProcess): SharedVeColVector = ???
+  def toSharedMemory()(implicit veProcess: VeProcess): SharedVeColVector = {
+    veProcess.copyToSharedMemory(this)
+    SharedVeColVector(underlying)
+  }
   def allAllocations = containerLocation :: bufferLocations
   def bufferLocations = underlying.buffers
   def containerLocation = underlying.containerLocation

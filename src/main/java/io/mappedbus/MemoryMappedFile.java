@@ -218,6 +218,10 @@ public class MemoryMappedFile {
         unsafe.copyMemory(data, BYTE_ARRAY_OFFSET + offset, null, pos + addr, length);
     }
 
+    public void setOffHeapBytes(long pos, long srcPointer, int length ) {
+        unsafe.copyMemory(srcPointer, pos, length);
+    }
+
     public boolean compareAndSwapInt(long pos, int expected, int value) {
         return unsafe.compareAndSwapInt(null, pos + addr, expected, value);
     }

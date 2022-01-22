@@ -79,4 +79,8 @@ class SparkCycloneDriverPlugin extends DriverPlugin with LazyLogging {
   override def shutdown(): Unit = {
     SparkCycloneDriverPlugin.launched = false
   }
+
+  def initSharedMemorySegment(): Int = {
+
+  }
 }

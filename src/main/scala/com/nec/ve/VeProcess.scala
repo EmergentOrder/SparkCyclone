@@ -2,14 +2,7 @@ package com.nec.ve
 
 import com.nec.arrow.VeArrowNativeInterface.requireOk
 import com.nec.spark.SparkCycloneExecutorPlugin
-import com.nec.spark.agile.CFunctionGeneration.{
-  CScalarVector,
-  CVarChar,
-  CVector,
-  VeScalarType,
-  VeString,
-  VeType
-}
+import com.nec.spark.agile.CFunctionGeneration.{CScalarVector, CVarChar, CVector, VeScalarType, VeString, VeType}
 import com.nec.ve.VeColBatch.{VeBatchOfBatches, VeColVector, VeColVectorSource}
 import com.nec.ve.VeProcess.{LibraryReference, OriginalCallingContext}
 import com.typesafe.scalalogging.LazyLogging
@@ -17,6 +10,7 @@ import org.bytedeco.javacpp.{BytePointer, IntPointer, LongPointer}
 import org.bytedeco.veoffload.global.veo
 import org.bytedeco.veoffload.veo_proc_handle
 import SparkCycloneExecutorPlugin.metrics.{measureRunningTime, registerVeCall}
+import io.mappedbus.MemoryMappedFile
 
 import java.nio.{ByteBuffer, ByteOrder}
 import java.nio.file.Path
@@ -28,6 +22,8 @@ trait VeProcess {
     get(containerLocation, bb, containerSize)
     bb
   }
+  def copyToSharedMemory(colVector: VeColVector): Unit
+  def copyFromSharedMemory(colVector: VeColVector): Unit
 
   def validateVectors(list: List[VeColVector]): Unit
   def loadLibrary(path: Path): LibraryReference
@@ -82,6 +78,10 @@ object VeProcess {
   final case class LibraryReference(value: Long)
   final case class DeferredVeProcess(f: () => VeProcess) extends VeProcess with LazyLogging {
 
+    override def copyFromSharedMemory(colVector: VeColVector): Unit = f().copyFromSharedMemory(colVector)
+
+    override def copyToSharedMemory(colVector: VeColVector): Unit = f().copyToSharedMemory(colVector)
+
     override def validateVectors(list: List[VeColVector]): Unit = f().validateVectors(list)
     override def loadLibrary(path: Path): LibraryReference = f().loadLibrary(path)
 
@@ -126,7 +126,8 @@ object VeProcess {
   final case class WrappingVeo(
     veo_proc_handle: veo_proc_handle,
     source: VeColVectorSource,
-    veProcessMetrics: VeProcessMetrics
+    veProcessMetrics: VeProcessMetrics,
+    sharedMemory: MemoryMappedFile
   ) extends VeProcess
     with LazyLogging {
     override def allocate(size: Long)(implicit context: OriginalCallingContext): Long = {
@@ -138,6 +139,16 @@ object VeProcess {
       )
       veProcessMetrics.registerAllocation(size, ptr)
       ptr
+    }
+
+    override def copyToSharedMemory(colVector: VeColVector): Unit = {
+      val underlying = colVector.underlying
+      underlying.buffers.zip(underlying.bufferSizes).foldLeft(0){
+        case (writtenBytes, (buffPointer, buffSize)) => {
+          sharedMemory.setOffHeapBytes(0 + writtenBytes, buffPointer, buffSize)
+          writtenBytes + buffSize
+        }
+      }
     }
 
     private implicit class RichVCV(veColVector: VeColVector) {

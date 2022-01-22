@@ -8,7 +8,8 @@ import com.nec.ve.colvector.VeColBatch.{VeColVector, VeColVectorSource}
 import org.bytedeco.veoffload.global.veo
 import org.scalatest.freespec.AnyFreeSpec
 
-final class SharedVeColVectorSpec extends AnyFreeSpec with WithVeProcess {
+final class
+SharedVeColVectorSpec extends AnyFreeSpec with WithVeProcess {
   "We can transfer from one VE process to another" in {
     val source: VeColVectorSource = VeColVectorSource(s"VE Tests")
     val proc1 = veo.veo_proc_create(0)
