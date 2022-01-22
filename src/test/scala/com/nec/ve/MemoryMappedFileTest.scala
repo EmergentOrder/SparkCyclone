@@ -7,7 +7,7 @@ import java.io.File
 
 final class MemoryMappedFileTest extends AnyFreeSpec {
 
-  val FILE_NAME = "/tmp/memorymappedfile-test"
+  val FILE_NAME = "/dev/shm/memorymappedfile-test"
   val FILE_SIZE = 1000L
 
   "It works" in {
