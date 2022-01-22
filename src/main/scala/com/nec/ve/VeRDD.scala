@@ -4,7 +4,7 @@ import com.nec.spark.SparkCycloneExecutorPlugin.source
 import com.nec.ve.VeColBatch.VeColVector
 import com.nec.ve.VeProcess.OriginalCallingContext
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.HashPartitioner
+import org.apache.spark.{HashPartitioner, Partition, TaskContext}
 import org.apache.spark.rdd.{RDD, ShuffledRDD}
 
 import scala.reflect.ClassTag
@@ -59,6 +59,46 @@ object VeRDD extends LazyLogging {
   }
 
   def joinExchangeL(
+    left: RDD[(Int, List[VeColVector])],
+    right: RDD[(Int, List[VeColVector])],
+    cleanUpInput: Boolean
+  ): RDD[(List[VeColVector], List[VeColVector])] =
+    new VeJoinRDD(left, right)
+
+  /** This is a PROOF OF CONCEPT. Memory is wasted heavily here right now. */
+  class VeJoinRDD(left: RDD[(Int, List[VeColVector])], right: RDD[(Int, List[VeColVector])])
+    extends {
+    val subRdd = right
+      .mapPartitions { iteratorOfRightColumns =>
+        import com.nec.spark.SparkCycloneExecutorPlugin._
+        iteratorOfRightColumns.map { case (idx, batch) =>
+          idx -> batch.map(_.toSharedMemory())
+        }
+      }
+      .join(left.mapPartitions { iteratorOnLeft =>
+        import com.nec.spark.SparkCycloneExecutorPlugin._
+        iteratorOnLeft.map { case (idx, batch) => idx -> batch.map(_.toSharedMemory()) }
+      })
+  } with RDD[(List[VeColVector], List[VeColVector])](subRdd.context, Nil) {
+
+    override def compute(
+      split: Partition,
+      context: TaskContext
+    ): Iterator[(List[VeColVector], List[VeColVector])] = {
+      subRdd
+        .compute(split, context)
+        .map { case (idx, (leftSharedCols, rightSharedCols)) =>
+          import com.nec.spark.SparkCycloneExecutorPlugin._
+          import OriginalCallingContext.Automatic._
+          (leftSharedCols.map(_.toLocalCol()), rightSharedCols.map(_.toLocalCol()))
+        }
+    }
+
+    override protected def getPartitions: Array[Partition] =
+      subRdd.partitions
+  }
+
+  def joinExchangeL_Slow(
     left: RDD[(Int, List[VeColVector])],
     right: RDD[(Int, List[VeColVector])],
     cleanUpInput: Boolean
