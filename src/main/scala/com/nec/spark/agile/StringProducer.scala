@@ -21,6 +21,7 @@ package com.nec.spark.agile
 
 import com.nec.spark.agile.CExpressionEvaluation.CodeLines
 import com.nec.spark.agile.CFunctionGeneration.CExpression
+import com.nec.spark.agile.StringProducer.FrovedisStringProducer
 
 sealed trait StringProducer extends Serializable {}
 
@@ -200,6 +201,27 @@ object StringProducer {
       stringProducer.produce(outputName, outputIdx).indented,
       "}",
       stringProducer.complete(outputName)
+    )
+  }
+}
+
+final case class SubstringProducer(inputName: String, outputName: String, pos: Int, len: Int)
+  extends FrovedisStringProducer {
+  override def init(outputName: String, size: String): CodeLines = {
+    CodeLines.from(
+      s"frovedis::words ${outputName}_words = varchar_vector_to_words(${inputName});"
+    )
+  }
+
+  override def produce(outputName: String, outputIdx: String): CodeLines = {
+    CodeLines.from(
+      s"${outputName}_words.substr(${pos}, ${len});"
+    )
+  }
+
+  override def complete(outputName: String): CodeLines = {
+    CodeLines.from(
+      s"words_to_varchar_vector(${outputName}_words, ${outputName});"
     )
   }
 }
