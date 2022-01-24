@@ -743,9 +743,13 @@ object CFunctionGeneration {
                 s"// STEP: Populate ${varName}",
                 fp.init(varName, "matching_ids.size()"),
                 CodeLines.forLoop("g", "matching_ids.size()") {
-                  CodeLines.from("int i = matching_ids[g];", fp.produce(varName, "g")).indented
+                  CodeLines.from(
+                    "int i = matching_ids[g];",
+                    fp.produce(varName, "g")
+                  )
                 },
-                fp.complete(varName)
+                fp.complete(varName),
+                fp.copyValidityBuffer(varName, Some("matching_ids"))
               )
             }
           case (cVector @ CScalarVector(_, tpe), idx) =>

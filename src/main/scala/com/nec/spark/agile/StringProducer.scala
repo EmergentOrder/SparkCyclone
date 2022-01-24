@@ -30,6 +30,7 @@ object StringProducer {
     def init(outputName: String, size: String): CodeLines
     def produce(outputName: String, outputIdx: String): CodeLines
     def complete(outputName: String): CodeLines
+    def copyValidityBuffer(outputName: String, subsetIndexes: Option[String]): CodeLines
   }
 
   def copyString(inputName: String): StringProducer = FrovedisCopyStringProducer(inputName)
@@ -77,6 +78,22 @@ object StringProducer {
       s"words_to_varchar_vector(${wordName(outputName)}, ${outputName});"
     )
 
+    override def copyValidityBuffer(outputName: String, subsetIndexes: Option[String]): CodeLines = {
+      subsetIndexes match {
+        case Some(subset) =>
+          CodeLines.forLoop("g", s"${subset}.size()") {
+            List(
+              s"int i = ${subset}[g];",
+              s"set_validity(${outputName}->validityBuffer, g, check_valid(${inputName}->validityBuffer, i));"
+            )
+          }
+
+        case None =>
+          CodeLines.forLoop("i", s"${outputName}->count") {
+            s"set_validity(${outputName}->validityBuffer, i, check_valid(${inputName}->validityBuffer, i));"
+          }
+      }
+    }
   }
 
   final case class StringChooser(condition: CExpression, ifTrue: String, otherwise: String)
@@ -116,6 +133,10 @@ object StringProducer {
         s"${outputName}_words.starts.swap(${outputName}_starts);",
         s"${outputName}_words.lens.swap(${outputName}_lens);"
       )
+    }
+
+    def copyValidityBuffer(outputName: String, subsetIndexes: Option[String]): CodeLines = {
+      CodeLines.empty
     }
   }
 
@@ -157,10 +178,11 @@ object StringProducer {
   ): CodeLines = {
     CodeLines.from(
       stringProducer.init(outputName, outputCount),
-      s"""for ( int32_t i = 0; i < $inputCount; i++ ) {""",
-      stringProducer.produce(outputName, outputIdx).indented,
-      "}",
-      stringProducer.complete(outputName)
+      CodeLines.forLoop("i", inputCount) {
+        stringProducer.produce(outputName, outputIdx)
+      },
+      stringProducer.complete(outputName),
+      stringProducer.copyValidityBuffer(outputName, None)
     )
   }
 }
