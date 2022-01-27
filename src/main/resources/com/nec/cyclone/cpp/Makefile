@@ -1,5 +1,5 @@
 CPP = $(shell ls /opt/nec/ve/bin/nc++ 2>/dev/null || echo c++)
-CPP_OPTS = -std=c++11
+CPP_OPTS = -std=c++17
 
 ALL = libcyclone
 
