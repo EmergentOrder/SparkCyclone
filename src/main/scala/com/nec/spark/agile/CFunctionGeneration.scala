@@ -741,7 +741,7 @@ object CFunctionGeneration {
             CodeLines.scoped {
               CodeLines.from(
                 s"// STEP: Populate ${varName}",
-                fp.init(varName, "matching_ids.size()"),
+                fp.init(varName, "matching_ids.size()", "0"),
                 CodeLines.forLoop("g", "matching_ids.size()") {
                   CodeLines.from(
                     "int i = matching_ids[g];",
